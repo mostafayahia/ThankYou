@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ThankYou</string>
+
+    <string name="developer_key" translatable="false">REPLACE_ME</string>
+
+    <string name="test">testtttttttt</string>
+
+</resources>
