@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ThankYou</string>
 
-    <string name="developer_key" translatable="false">@string/place_holder</string>
+    <string name="developer_key" translatable="false">@string/placeholder</string>
 
     <string name="placeholder" translatable="false">REPLACE_ME</string>
 
