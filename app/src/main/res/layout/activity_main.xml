@@ -4,53 +4,64 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/app_bar_height"
         android:elevation="4dp">
 
-        <android.support.v7.widget.Toolbar
+        <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:layout_scrollFlags="scroll|enterAlways">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
+                android:paddingTop="@dimen/toolbar_padding_top"
+                android:paddingStart="@dimen/toolbar_padding_start"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
                 android:textColor="@color/appBarTextColor"
-                android:fontFamily="cursive"
-                />
+                app:fontFamily="cursive"
+                android:paddingLeft="@dimen/toolbar_padding_start" />
 
-        </android.support.v7.widget.Toolbar>
+        </android.support.design.widget.CollapsingToolbarLayout>
 
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabSelectedTextColor="@color/appBarTextColor"
-            app:tabIndicatorHeight="@dimen/tab_indicator_height"
-            app:tabTextColor="@color/tab_text_color"
             app:tabGravity="fill"
-            app:tabMode="fixed" />
+            app:tabIndicatorHeight="@dimen/tab_indicator_height"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@color/appBarTextColor"
+            app:tabTextColor="@color/tab_text_color" />
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sample_text"
-        />
+        <fragment
+            android:id="@+id/song_list_fragment"
+            android:name="nd801project.elmasry.thankyou.ui.SongListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
 
-    </android.support.v4.widget.NestedScrollView>
+        <ProgressBar
+            android:id="@+id/loading_indicator_progress_bar"
+            android:layout_width="@dimen/loading_indicator_size"
+            android:layout_height="@dimen/loading_indicator_size"
+            android:layout_gravity="center"
+            android:visibility="invisible"/>
+
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>
