@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "nd801project.elmasry.thankyou"
-        minSdkVersion 14
+        minSdkVersion 17
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -41,4 +41,7 @@ dependencies {
 
     // using picasso for caching and displaying images
     implementation 'com.squareup.picasso:picasso:2.5.2'
+
+    // using to display youtube video
+    implementation files('libs/YouTubeAndroidPlayerApi.jar')
 }

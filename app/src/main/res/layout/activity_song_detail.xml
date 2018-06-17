@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <FrameLayout
+        android:id="@+id/up_container"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        >
+
+        <ImageButton
+            android:id="@+id/action_up"
+            android:layout_width="@dimen/up_button_width"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/up"
+            android:src="@drawable/ic_up"
+            android:onClick="upButtonHandler"
+            />
+
+    </FrameLayout>
+
+    <fragment
+        android:id="@+id/song_detail_fragment"
+        android:name="nd801project.elmasry.thankyou.ui.SongDetailFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

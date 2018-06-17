@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <fragment
+        android:id="@+id/youtube_fragment"
+        android:name="com.google.android.youtube.player.YouTubePlayerFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/song_title_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minLines="3"
+        android:layout_margin="16dp"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Title"
+        tools:text="Song title here"
+        android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        tools:background="#ffdd">
+
+        <ImageButton
+            android:id="@+id/previous_fab"
+            style="@style/FABStyle"
+            android:src="@drawable/ic_previous"
+            android:contentDescription="@string/previous_button"
+            android:onClick="previousButtonHandler"/>
+
+        <View style="@style/EqualActionButtonSeparator" />
+
+        <ImageButton
+            android:id="@+id/favorite_fab"
+            style="@style/FABStyle"
+            android:src="@drawable/ic_favorite_white"
+            android:contentDescription="@string/favorite_button"/>
+
+        <View style="@style/EqualActionButtonSeparator" />
+
+        <ImageButton
+            android:id="@+id/share_fab"
+            style="@style/FABStyle"
+            android:src="@drawable/ic_share"
+            android:contentDescription="@string/share_button"
+            />
+
+        <View style="@style/EqualActionButtonSeparator" />
+
+        <ImageButton
+            android:id="@+id/next_fab"
+            style="@style/FABStyle"
+            android:src="@drawable/ic_next"
+            android:contentDescription="@string/next_button"
+            android:onClick="nextButtonHandler"/>
+
+    </LinearLayout>
+
+</LinearLayout>

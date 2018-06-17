@@ -1,14 +1,22 @@
 <resources>
-    <string name="app_name">ThankYou</string>
+    <string name="app_name">Thank You</string>
 
     <string name="developer_key" translatable="false">@string/placeholder</string>
 
     <string name="placeholder" translatable="false">REPLACE_ME</string>
 
+    <string name="private_video_title" translatable="false">Private video</string>
+
     <string name="label_all">ALL</string>
     <string name="label_fav">FAV</string>
 
-    <string name="private_video_title" translatable="false">Private video</string>
     <string name="no_internet_connection">No internet connection!</string>
+    <string name="up">Up</string>
+    <string name="previous_button">Previous Song</string>
+    <string name="favorite_button">Favorite button</string>
+    <string name="share_button">Share</string>
+    <string name="next_button">Next Song</string>
+    <string name="no_previous_song">You reached to the beginning of the list</string>
+    <string name="no_next_song">You reached to the end of the list</string>
 
 </resources>

@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="appBarTextColor">#ffff</color>
     <color name="tab_text_color">#8fff</color>
+    <color name="photo_placeholder">#fccc</color>
 </resources>

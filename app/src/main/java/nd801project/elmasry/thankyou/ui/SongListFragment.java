@@ -10,13 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.List;
+
 import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
 
 public class SongListFragment extends Fragment {
 
     RecyclerView mRecyclerView;
-    SongVideoAdapter mSongVideoAdapter;
 
     @Nullable
     @Override
@@ -25,17 +26,17 @@ public class SongListFragment extends Fragment {
         final View rootView = inflater.inflate(R.layout.fragment_song_list, container, false);
 
         // setting properties for the RecyclerView
-        mSongVideoAdapter = new SongVideoAdapter(getContext());
         mRecyclerView = rootView.findViewById(R.id.song_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setAdapter(mSongVideoAdapter);
 
         return rootView;
     }
 
-    public void setSongVideoInfoArray(SongVideoInfo[] songVideoInfoArray) {
-        mSongVideoAdapter.setSongVideoInfoArray(songVideoInfoArray);
+    public void setSongVideoInfoList(List<SongVideoInfo> songVideoInfoList, SongVideoAdapter.Callback callback) {
+        SongVideoAdapter songVideoAdapter = new SongVideoAdapter(getContext(), callback);
+        mRecyclerView.setAdapter(songVideoAdapter);
+        songVideoAdapter.setSongVideoInfoList(songVideoInfoList);
     }
 
 }

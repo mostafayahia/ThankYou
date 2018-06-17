@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         android:layout_marginBottom="0dp"
         android:layout_marginTop="0dp"
-        tools:background="#ff00"
+        android:background="@color/photo_placeholder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="4:3"
         app:layout_constraintTop_toTopOf="parent"
