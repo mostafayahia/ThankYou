@@ -11,9 +11,10 @@ import java.util.List;
 
 import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
+import nd801project.elmasry.thankyou.utilities.HelperUtils;
 import timber.log.Timber;
 
-public class SongDetailActivityCallback extends AppCompatActivity implements SongDetailFragment.SongVideoEndedCallback {
+public class SongDetailActivity extends AppCompatActivity implements SongDetailFragment.SongVideoEndedCallback {
 
     public static final String EXTRA_SONG_VIDEO_POSITION = "nd801project.elmasry.thankyou.extra.SONG_VIDEO_POSITION";
     public static final String EXTRA_SONG_VIDEO_INFO_LIST = "nd801project.elmasry.thankyou.extra.SONG_VIDEO_INFO_LIST";
@@ -82,7 +83,7 @@ public class SongDetailActivityCallback extends AppCompatActivity implements Son
 
     public void previousButtonHandler(View view) {
         if (mSongVideoPosition <= 0) {
-            Snackbar.make(findViewById(android.R.id.content), R.string.no_previous_song, Snackbar.LENGTH_SHORT).show();
+            HelperUtils.showSnackbar(this, R.string.no_previous_song);
         } else {
             mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(--mSongVideoPosition));
         }
@@ -90,7 +91,7 @@ public class SongDetailActivityCallback extends AppCompatActivity implements Son
 
     public void nextButtonHandler(View view) {
         if (mSongVideoPosition >= mSongVideoInfoList.size()-1) {
-            Snackbar.make(findViewById(android.R.id.content), R.string.no_next_song, Snackbar.LENGTH_SHORT).show();
+            HelperUtils.showSnackbar(this, R.string.no_next_song);
         } else {
             mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(++mSongVideoPosition));
         }

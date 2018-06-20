@@ -15,19 +15,18 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            >
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:paddingTop="@dimen/toolbar_padding_top"
+                android:paddingLeft="@dimen/toolbar_padding_start"
                 android:paddingStart="@dimen/toolbar_padding_start"
+                android:paddingTop="@dimen/toolbar_padding_top"
+                android:text="@string/app_name"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
                 android:textColor="@color/appBarTextColor"
-                app:fontFamily="cursive"
-                android:paddingLeft="@dimen/toolbar_padding_start" />
+                app:fontFamily="cursive" />
 
         </android.support.design.widget.CollapsingToolbarLayout>
 
@@ -36,33 +35,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:tabGravity="fill"
-            app:tabMaxWidth="0dp"
             app:tabIndicatorHeight="@dimen/tab_indicator_height"
+            app:tabMaxWidth="0dp"
             app:tabMode="fixed"
             app:tabSelectedTextColor="@color/appBarTextColor"
             app:tabTextColor="@color/tab_text_color" />
 
     </android.support.design.widget.AppBarLayout>
 
-    <FrameLayout
+    <fragment
+        android:id="@+id/song_list_fragment"
+        android:name="nd801project.elmasry.thankyou.ui.SongListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <fragment
-            android:id="@+id/song_list_fragment"
-            android:name="nd801project.elmasry.thankyou.ui.SongListFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
-
-        <ProgressBar
-            android:id="@+id/loading_indicator_progress_bar"
-            android:layout_width="@dimen/loading_indicator_size"
-            android:layout_height="@dimen/loading_indicator_size"
-            android:layout_gravity="center"
-            android:visibility="invisible"/>
-
-    </FrameLayout>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </android.support.design.widget.CoordinatorLayout>

@@ -18,5 +18,10 @@
     <string name="next_button">Next Song</string>
     <string name="no_previous_song">You reached to the beginning of the list</string>
     <string name="no_next_song">You reached to the end of the list</string>
+    <string name="no_title_for_video">N/A</string>
+    <string name="no_song">No Song to be added to favorites</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
+    <string name="added_to_favorites">Added to favorites</string>
+    <string name="no_favorite_songs">No favorite songs!</string>
 
 </resources>

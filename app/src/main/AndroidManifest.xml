@@ -23,10 +23,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.SongDetailActivityCallback"
+            android:name=".ui.SongDetailActivity"
             android:parentActivityName=".ui.MainActivity"
             >
         </activity>
+
+        <provider
+            android:authorities="nd801project.elmasry.thankyou"
+            android:name=".data.FavoritesContentProvider"
+            android:exported="false" />
     </application>
 
 </manifest>

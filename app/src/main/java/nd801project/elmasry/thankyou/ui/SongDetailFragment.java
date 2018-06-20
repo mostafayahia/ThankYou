@@ -3,6 +3,7 @@ package nd801project.elmasry.thankyou.ui;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -18,10 +20,14 @@ import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
+import nd801project.elmasry.thankyou.utilities.DbUtils;
+import nd801project.elmasry.thankyou.utilities.HelperUtils;
 import timber.log.Timber;
 
+import static com.google.android.youtube.player.YouTubePlayer.*;
+
 public class SongDetailFragment extends Fragment implements
-        YouTubePlayer.OnInitializedListener, YouTubePlayer.PlayerStateChangeListener, View.OnClickListener {
+        YouTubePlayer.OnInitializedListener, View.OnClickListener {
 
     private static final String IS_PLAYING_KEY = "is_playing";
 
@@ -32,30 +38,18 @@ public class SongDetailFragment extends Fragment implements
     private String mDeveloperKey;
     private int mPlayingPositionMillis;
 
-    private boolean mAutoPlayVideo = true; // we want to auto play by default
+    private boolean mAutoPlayVideo = true; // we want to auto play the video by default
 
     private Bundle mSavedInstanceState;
+    private SongVideoInfo mSongVideoInfo;
+    private ImageView mFavoriteButton;
 
-    @Override
-    public void onClick(View view) {
-        int id = view.getId();
-        switch (id) {
-            case R.id.share_fab:
-                shareButtonHandler();
-                break;
-        }
-    }
+    private PlayerStateChangeListener mPlayerStateChangeListener;
+
+
 
     interface SongVideoEndedCallback {
         void onSongVideoEnded();
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (!(context instanceof SongVideoEndedCallback)) {
-            throw new ClassCastException("the host activity must implement SongVideoEndedCallback");
-        }
     }
 
     @Nullable
@@ -71,7 +65,11 @@ public class SongDetailFragment extends Fragment implements
 
         final View rootView = inflater.inflate(R.layout.fragment_song_detail, container, false);
         mYouTubePlayerFragment = (YouTubePlayerFragment) getChildFragmentManager().findFragmentById(R.id.youtube_fragment);
+        mPlayerStateChangeListener = new MyPlayerStateChangeListener();
+        mFavoriteButton = rootView.findViewById(R.id.favorite_fab);
+
         rootView.findViewById(R.id.share_fab).setOnClickListener(this);
+        rootView.findViewById(R.id.favorite_fab).setOnClickListener(this);
 
         this.mSavedInstanceState = savedInstanceState;
 
@@ -82,7 +80,14 @@ public class SongDetailFragment extends Fragment implements
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean wasRestored) {
         if (!TextUtils.isEmpty(mVideoId)) {
             this.mPlayer = youTubePlayer;
-            mPlayer.setPlayerStateChangeListener(this);
+            mPlayer.setPlayerStateChangeListener(mPlayerStateChangeListener);
+
+            // making player in full screen in phone case and landscape mode only
+            boolean isTablet = getResources().getBoolean(R.bool.isTablet);
+            if (!isTablet) {
+                boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+                mPlayer.setFullscreen(isLandscape);
+            }
 
             if (!wasRestored) {
                 loadVideo(mPlayingPositionMillis);
@@ -96,7 +101,6 @@ public class SongDetailFragment extends Fragment implements
     }
 
     private void loadVideo(int startFromMillis) {
-
         if (mAutoPlayVideo) mPlayer.loadVideo(mVideoId, startFromMillis);
         else                mPlayer.cueVideo(mVideoId, startFromMillis);
     }
@@ -136,8 +140,21 @@ public class SongDetailFragment extends Fragment implements
         if (mDeveloperKey.equals(R.string.placeholder)) return;
 
         mVideoId = songVideoInfo.getVideoId();
-        String videoTitle = songVideoInfo.getVideoTitle();
-        ((TextView) getActivity().findViewById(R.id.song_title_text_view)).setText(videoTitle);
+        mSongVideoInfo = songVideoInfo;
+
+        init();
+    }
+
+    private void init() {
+
+        // setting song video title
+        String videoTitle = mSongVideoInfo.getVideoTitle();
+        TextView titleTextView = getActivity().findViewById(R.id.song_title_text_view);
+        if (!TextUtils.isEmpty(videoTitle)) {
+            titleTextView.setText(videoTitle);
+        } else {
+            titleTextView.setText(R.string.no_title_for_video);
+        }
 
         mAutoPlayVideo = true; // we want the video to be auto-play by default
 
@@ -146,6 +163,14 @@ public class SongDetailFragment extends Fragment implements
         } else {
             loadVideo(0);
         }
+
+        if (DbUtils.isSongInFavorites(getActivity(), mVideoId)) {
+            mFavoriteButton.setImageResource(R.drawable.ic_favorite_yellow);
+        } else {
+            mFavoriteButton.setImageResource(R.drawable.ic_favorite_white);
+        }
+
+
     }
 
     @Override
@@ -157,32 +182,18 @@ public class SongDetailFragment extends Fragment implements
         }
     }
 
-    @Override
-    public void onLoading() {
-    }
 
     @Override
-    public void onLoaded(String s) {
-    }
-
-    @Override
-    public void onAdStarted() {
-    }
-
-    @Override
-    public void onVideoStarted() {
-    }
-
-    @Override
-    public void onVideoEnded() {
-        SongVideoEndedCallback songVideoEndedCallback = (SongVideoEndedCallback) getActivity();
-        songVideoEndedCallback.onSongVideoEnded();
-    }
-
-    @Override
-    public void onError(YouTubePlayer.ErrorReason errorReason) {
-        mPlayer = null;
-        Timber.e("Error happened: " + errorReason);
+    public void onClick(View view) {
+        int id = view.getId();
+        switch (id) {
+            case R.id.share_fab:
+                shareButtonHandler();
+                break;
+            case R.id.favorite_fab:
+                favoriteButtonHandler();
+                break;
+        }
     }
 
     public void shareButtonHandler() {
@@ -192,5 +203,67 @@ public class SongDetailFragment extends Fragment implements
         sendIntent.putExtra(Intent.EXTRA_TEXT, videoLink);
         sendIntent.setType("text/plain");
         startActivity(sendIntent);
+    }
+
+    private void favoriteButtonHandler() {
+        if (mSongVideoInfo == null || TextUtils.isEmpty(mVideoId)) {
+            HelperUtils.showSnackbar(getActivity(), R.string.no_song);
+            return;
+        }
+
+        // we toggle the state of the song
+        if (DbUtils.isSongInFavorites(getActivity(), mVideoId)) {
+            boolean isDeleted = DbUtils.deleteFromFavorites(getActivity(), mVideoId);
+            if (isDeleted) {
+                mFavoriteButton.setImageResource(R.drawable.ic_favorite_white);
+                HelperUtils.showSnackbar(getActivity(), R.string.removed_from_favorites);
+            }
+        } else {
+            boolean isInserted = DbUtils.insertInFavorites(getActivity(), mSongVideoInfo);
+            if (isInserted) {
+                mFavoriteButton.setImageResource(R.drawable.ic_favorite_yellow);
+                HelperUtils.showSnackbar(getActivity(), R.string.added_to_favorites);
+            }
+        }
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (!(context instanceof SongVideoEndedCallback)) {
+            throw new ClassCastException("the host activity must implement SongVideoEndedCallback");
+        }
+    }
+
+    private class MyPlayerStateChangeListener implements YouTubePlayer.PlayerStateChangeListener {
+
+        @Override
+        public void onLoading() {
+        }
+
+        @Override
+        public void onLoaded(String s) {
+        }
+
+        @Override
+        public void onAdStarted() {
+        }
+
+        @Override
+        public void onVideoStarted() {
+        }
+
+        @Override
+        public void onVideoEnded() {
+            SongVideoEndedCallback songVideoEndedCallback = (SongVideoEndedCallback) getActivity();
+            songVideoEndedCallback.onSongVideoEnded();
+        }
+
+        @Override
+        public void onError(YouTubePlayer.ErrorReason errorReason) {
+            mPlayer = null;
+            Timber.e("Error happened: " + errorReason);
+        }
     }
 }
