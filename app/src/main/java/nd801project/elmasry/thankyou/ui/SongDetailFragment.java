@@ -30,6 +30,8 @@ public class SongDetailFragment extends Fragment implements
         YouTubePlayer.OnInitializedListener, View.OnClickListener {
 
     private static final String IS_PLAYING_KEY = "is_playing";
+    private static final String SONG_VIDEO_INFO_KEY = "song_video_info";
+    private static final String IS_FULL_SCREEN_LANDSCAPE_KEY = "is_full_screen_landscape";
 
     private String mVideoId;
 
@@ -38,14 +40,14 @@ public class SongDetailFragment extends Fragment implements
     private String mDeveloperKey;
     private int mPlayingPositionMillis;
 
-    private boolean mAutoPlayVideo = true; // we want to auto play the video by default
+    private boolean mAutoPlayVideo;
+    private boolean mIsFullScreenInLandscape;
 
-    private Bundle mSavedInstanceState;
     private SongVideoInfo mSongVideoInfo;
     private ImageView mFavoriteButton;
 
     private PlayerStateChangeListener mPlayerStateChangeListener;
-
+    private boolean mIsPlaying;
 
 
     interface SongVideoEndedCallback {
@@ -71,7 +73,17 @@ public class SongDetailFragment extends Fragment implements
         rootView.findViewById(R.id.share_fab).setOnClickListener(this);
         rootView.findViewById(R.id.favorite_fab).setOnClickListener(this);
 
-        this.mSavedInstanceState = savedInstanceState;
+        // restoring members' values after rotation the device
+        mIsPlaying = false; // default value
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(IS_PLAYING_KEY))
+                mIsPlaying = savedInstanceState.getBoolean(IS_PLAYING_KEY);
+            if (savedInstanceState.containsKey(SONG_VIDEO_INFO_KEY)) {
+                mSongVideoInfo = (SongVideoInfo) savedInstanceState.get(SONG_VIDEO_INFO_KEY);
+                mVideoId = mSongVideoInfo.getVideoId();
+            }
+            mIsFullScreenInLandscape = savedInstanceState.getBoolean(IS_FULL_SCREEN_LANDSCAPE_KEY);
+        }
 
         return rootView;
     }
@@ -82,18 +94,15 @@ public class SongDetailFragment extends Fragment implements
             this.mPlayer = youTubePlayer;
             mPlayer.setPlayerStateChangeListener(mPlayerStateChangeListener);
 
-            // making player in full screen in phone case and landscape mode only
-            boolean isTablet = getResources().getBoolean(R.bool.isTablet);
-            if (!isTablet) {
+            if (mIsFullScreenInLandscape) {
                 boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
                 mPlayer.setFullscreen(isLandscape);
             }
 
             if (!wasRestored) {
                 loadVideo(mPlayingPositionMillis);
-            } else if (mSavedInstanceState != null && mSavedInstanceState.containsKey(IS_PLAYING_KEY)) {
-                boolean isPlaying = mSavedInstanceState.getBoolean(IS_PLAYING_KEY);
-                if (isPlaying) mPlayer.play();
+            } else if (mIsPlaying) {
+                mPlayer.play();
             }
         } else {
             Timber.e("Error: videoId is null or empty string");
@@ -117,18 +126,27 @@ public class SongDetailFragment extends Fragment implements
             // from invisible to visible
             mAutoPlayVideo = false;
 
-            mPlayer.pause();
-            mPlayer.release();
-            mPlayer = null;
+            releasePlayer();
         }
+    }
+
+    /**
+     * stop and release the resources related to youtube player
+     */
+    public void releasePlayer() {
+        if (mPlayer == null) return;
+
+        mPlayer.pause();
+        mPlayer.release();
+        mPlayer = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (mDeveloperKey.equals(R.string.placeholder)) return;
 
-        mYouTubePlayerFragment.initialize(mDeveloperKey, this);
+        if (!TextUtils.isEmpty(mVideoId))
+            init();
     }
 
     @Override
@@ -136,11 +154,16 @@ public class SongDetailFragment extends Fragment implements
         Timber.e("Error: Youtube initialization failed: " + youTubeInitializationResult.toString());
     }
 
-    public void setSongVideoInfo(SongVideoInfo songVideoInfo) {
-        if (mDeveloperKey.equals(R.string.placeholder)) return;
-
+    /**
+     * setting song video info for this fragment and the video will be auto-play by default
+     * @param songVideoInfo
+     * @param isFullScreenInLandscape
+     */
+    public void setSongVideoInfo(SongVideoInfo songVideoInfo, boolean isFullScreenInLandscape) {
         mVideoId = songVideoInfo.getVideoId();
         mSongVideoInfo = songVideoInfo;
+        mAutoPlayVideo = true; // we want the video to be auto-play by default
+        mIsFullScreenInLandscape = isFullScreenInLandscape;
 
         init();
     }
@@ -156,8 +179,6 @@ public class SongDetailFragment extends Fragment implements
             titleTextView.setText(R.string.no_title_for_video);
         }
 
-        mAutoPlayVideo = true; // we want the video to be auto-play by default
-
         if (mPlayer == null) {
             mYouTubePlayerFragment.initialize(mDeveloperKey, this);
         } else {
@@ -170,7 +191,6 @@ public class SongDetailFragment extends Fragment implements
             mFavoriteButton.setImageResource(R.drawable.ic_favorite_white);
         }
 
-
     }
 
     @Override
@@ -180,6 +200,12 @@ public class SongDetailFragment extends Fragment implements
         if (mPlayer != null) {
             outState.putBoolean(IS_PLAYING_KEY, mPlayer.isPlaying());
         }
+
+        if (mSongVideoInfo != null) {
+            outState.putParcelable(SONG_VIDEO_INFO_KEY, mSongVideoInfo);
+        }
+
+        outState.putBoolean(IS_FULL_SCREEN_LANDSCAPE_KEY, mIsFullScreenInLandscape);
     }
 
 
@@ -211,7 +237,7 @@ public class SongDetailFragment extends Fragment implements
             return;
         }
 
-        // we toggle the state of the song
+        // check if the song is in favorites then we will toggle the state of the song
         if (DbUtils.isSongInFavorites(getActivity(), mVideoId)) {
             boolean isDeleted = DbUtils.deleteFromFavorites(getActivity(), mVideoId);
             if (isDeleted) {

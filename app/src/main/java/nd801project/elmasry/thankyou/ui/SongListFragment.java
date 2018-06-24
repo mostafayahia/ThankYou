@@ -1,9 +1,10 @@
 package nd801project.elmasry.thankyou.ui;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,10 +15,15 @@ import java.util.List;
 
 import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
+import timber.log.Timber;
 
 public class SongListFragment extends Fragment {
 
-    RecyclerView mRecyclerView;
+    private RecyclerView mRecyclerView;
+    private SongVideoAdapter mSongVideoAdapter;
+    private int mSelectedItemPos = RecyclerView.NO_POSITION;
+
+    private static final String SELECTED_ITEM_POSITION_KEY = "selected_item_position";
 
     @Nullable
     @Override
@@ -27,16 +33,61 @@ public class SongListFragment extends Fragment {
 
         // setting properties for the RecyclerView
         mRecyclerView = rootView.findViewById(R.id.song_list_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setHasFixedSize(true);
+
+        // restoring the state after rotating the device
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(SELECTED_ITEM_POSITION_KEY))
+                mSelectedItemPos = savedInstanceState.getInt(SELECTED_ITEM_POSITION_KEY);
+
+            // using "post()" method here to get smooth scroll to selected item
+            // and get the effect to the selected item too.
+            new Handler().post(new Runnable() {
+                @Override
+                public void run() {
+                    setSelectedItem(mSelectedItemPos);
+                }
+            });
+        }
+
 
         return rootView;
     }
 
-    public void setSongVideoInfoList(List<SongVideoInfo> songVideoInfoList, SongVideoAdapter.Callback callback) {
-        SongVideoAdapter songVideoAdapter = new SongVideoAdapter(getContext(), callback);
-        mRecyclerView.setAdapter(songVideoAdapter);
-        songVideoAdapter.setSongVideoInfoList(songVideoInfoList);
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (mSelectedItemPos >= 0) {
+            outState.putInt(SELECTED_ITEM_POSITION_KEY, mSelectedItemPos);
+        }
+    }
+
+    public void setSongVideoInfoList(List<SongVideoInfo> songVideoInfoList,
+                                     SongVideoAdapter.ImageViewClickCallback imageViewClickCallback,
+                                     SongVideoAdapter.ImageViewSelectedCallback imageViewSelectedCallback) {
+
+        mSongVideoAdapter = new SongVideoAdapter(getActivity(),
+                imageViewClickCallback, imageViewSelectedCallback);
+        mRecyclerView.setAdapter(mSongVideoAdapter);
+        mSongVideoAdapter.setSongVideoInfoList(songVideoInfoList);
+    }
+
+    public void setSelectedItem(int position) {
+        if (position < 0) {
+            Timber.e("position can't be negative: " + position);
+            return;
+        }
+
+        if (mSongVideoAdapter == null || mRecyclerView == null) {
+            Timber.e("You must set properties' values first by calling setSongVideoInfoList()");
+            return;
+        }
+
+        mSelectedItemPos = position;
+        mSongVideoAdapter.setSelectedItem(position);
+        mRecyclerView.smoothScrollToPosition(position);
     }
 
 }

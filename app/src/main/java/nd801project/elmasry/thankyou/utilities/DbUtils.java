@@ -1,12 +1,11 @@
 package nd801project.elmasry.thankyou.utilities;
 
-import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
 
 import static nd801project.elmasry.thankyou.data.FavoritesContract.FavoritesEntry.*;
@@ -16,14 +15,14 @@ public class DbUtils {
 
     /**
      * return true if the song stored in favorites
-     * @param activity
+     * @param context
      * @param videoId
      * @return
      */
-    public static  boolean isSongInFavorites(Activity activity, String videoId) {
+    public static  boolean isSongInFavorites(Context context, String videoId) {
         if (TextUtils.isEmpty(videoId)) return false;
 
-        Cursor cursor = activity.getContentResolver().query(CONTENT_URI, new String[]{"_id"},
+        Cursor cursor = context.getContentResolver().query(CONTENT_URI, new String[]{"_id"},
                 COLUMN_VIDEO_ID + "=?", new String[]{videoId}, null);
 
         boolean inFavorites = (cursor != null && cursor.getCount() > 0);
@@ -34,11 +33,11 @@ public class DbUtils {
 
     /**
      * return true if insertion was successful
-     * @param activity
+     * @param context
      * @param songVideoInfo
      * @return
      */
-    public static boolean insertInFavorites(Activity activity, SongVideoInfo songVideoInfo) {
+    public static boolean insertInFavorites(Context context, SongVideoInfo songVideoInfo) {
         if (songVideoInfo == null) return false;
 
         ContentValues contentValues = new ContentValues();
@@ -46,21 +45,21 @@ public class DbUtils {
         contentValues.put(COLUMN_VIDEO_TITLE, songVideoInfo.getVideoTitle());
         contentValues.put(COLUMN_VIDEO_THUMBNAIL_URL, songVideoInfo.getVideoThumbnailUrl());
 
-        Uri uri = activity.getContentResolver().insert(CONTENT_URI, contentValues);
+        Uri uri = context.getContentResolver().insert(CONTENT_URI, contentValues);
 
         return uri != null;
     }
 
     /**
      * return true if the deletion was successful
-     * @param activity
+     * @param context
      * @param videoId
      * @return
      */
-    public static boolean deleteFromFavorites(Activity activity, String videoId) {
+    public static boolean deleteFromFavorites(Context context, String videoId) {
         if (TextUtils.isEmpty(videoId)) return false;
 
-        int rowDeleted = activity.getContentResolver().delete(CONTENT_URI, COLUMN_VIDEO_ID + "=?",
+        int rowDeleted = context.getContentResolver().delete(CONTENT_URI, COLUMN_VIDEO_ID + "=?",
                 new String[]{videoId});
 
         return rowDeleted > 0;
@@ -68,11 +67,11 @@ public class DbUtils {
 
     /**
      * return an array of songVideoInfo of all favorites which are stored in the database
-     * @param activity
+     * @param context
      * @return
      */
-    public static SongVideoInfo[] getAllFavoriteSongs(Activity activity) {
-        Cursor cursor = activity.getContentResolver().query(CONTENT_URI, null,
+    public static SongVideoInfo[] getAllFavoriteSongs(Context context) {
+        Cursor cursor = context.getContentResolver().query(CONTENT_URI, null,
                 null, null, null);
 
         SongVideoInfo[] songVideoInfoArray = null;

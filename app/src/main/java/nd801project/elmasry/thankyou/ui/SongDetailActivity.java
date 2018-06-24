@@ -1,7 +1,6 @@
 package nd801project.elmasry.thankyou.ui;
 
 import android.content.res.Configuration;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,6 +24,8 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
     private int mSongVideoPosition;
     private SongDetailFragment mSongDetailFragment;
 
+    private static final boolean IS_FULL_SCREEN_IN_LANDSCAPE = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,13 +48,13 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
                 Timber.e("songVideoPosition wasn't sent as extra");
                 return;
             }
+
+            SongVideoInfo songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
+            mSongDetailFragment.setSongVideoInfo(songVideoInfo, IS_FULL_SCREEN_IN_LANDSCAPE);
         } else {
             if (savedInstanceState.containsKey(SONG_VIDEO_POSITION_KEY))
                 mSongVideoPosition = savedInstanceState.getInt(SONG_VIDEO_POSITION_KEY);
         }
-
-        SongVideoInfo songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
-        mSongDetailFragment.setSongVideoInfo(songVideoInfo);
 
         // hiding the status bar only in landscape mode
         View decorView = getWindow().getDecorView();
@@ -85,7 +86,7 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
         if (mSongVideoPosition <= 0) {
             HelperUtils.showSnackbar(this, R.string.no_previous_song);
         } else {
-            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(--mSongVideoPosition));
+            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(--mSongVideoPosition), IS_FULL_SCREEN_IN_LANDSCAPE);
         }
     }
 
@@ -93,7 +94,7 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
         if (mSongVideoPosition >= mSongVideoInfoList.size()-1) {
             HelperUtils.showSnackbar(this, R.string.no_next_song);
         } else {
-            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(++mSongVideoPosition));
+            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(++mSongVideoPosition), IS_FULL_SCREEN_IN_LANDSCAPE);
         }
     }
 

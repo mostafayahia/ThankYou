@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import org.json.JSONException;
 
@@ -26,18 +28,26 @@ import nd801project.elmasry.thankyou.utilities.NetworkUtils;
 import nd801project.elmasry.thankyou.utilities.YoutubeApiJsonUtils;
 import timber.log.Timber;
 
-public class MainActivity extends AppCompatActivity implements SongVideoAdapter.Callback, TabLayout.OnTabSelectedListener {
+public class MainActivity extends AppCompatActivity implements SongVideoAdapter.ImageViewClickCallback,
+        SongDetailFragment.SongVideoEndedCallback, SongVideoAdapter.ImageViewSelectedCallback, ThankUTabHelper.TabSelectedCallback {
 
     private static final String SONG_VIDEO_INFO_ARRAY_KEY = "song_video_info_array";
     private static final String SELECTED_TAB_POSITION_KEY = "selected_tab_position";
+    private static final String SONG_VIDEO_POSITION_KEY = "song_video_position";
+    private static final String IS_SONG_DETAIL_LAYOUT_VISIBLE_KEY = "is_song_detail_layout_visible";
 
     List<SongVideoInfo> mSongVideoInfoList;
     private SongListFragment mSongListFragment;
-    private TabLayout mTabLayout;
+    private SongDetailFragment mSongDetailFragment;
 
-    private static final int POSITION_ALL_TAB = 0;
-    private static final int POSITION_FAV_TAB = 1;
-    private static final int TABS_NUM = 2;
+    private boolean mTwoPane;
+    private LinearLayout mSongDetailLayout;
+    private int mSongVideoPosition = -1; // by default: has an invalid position
+    boolean mIsSongDetailLayoutVisible;
+
+    private ThankUTabHelper mThankUTabHelper;
+
+    private static final boolean IS_VIDEO_FULL_SCREEN_IN_LANDSCAPE = false;
 
 
     @Override
@@ -47,27 +57,40 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
 
         Timber.plant(new Timber.DebugTree());
 
-        mSongListFragment = (SongListFragment) getSupportFragmentManager().findFragmentById(R.id.song_list_fragment);
+        mSongListFragment = (SongListFragment) getFragmentManager().findFragmentById(R.id.song_list_fragment);
 
-        // create the tabs to be displayed
-        mTabLayout = findViewById(R.id.tabs);
-        TabLayout.Tab[] tabs = new TabLayout.Tab[TABS_NUM];
-        TabLayout.Tab allTab = mTabLayout.newTab().setText(R.string.label_all);
-        TabLayout.Tab favTab = mTabLayout.newTab().setText(R.string.label_fav);
-        tabs[POSITION_ALL_TAB] = allTab;
-        tabs[POSITION_FAV_TAB] = favTab;
+        // handle the tablet case
+        mSongDetailLayout = findViewById(R.id.song_detail_fragment);
+        if (mSongDetailLayout != null) {
+            mTwoPane = true;
+            mSongDetailFragment = (SongDetailFragment) getFragmentManager().findFragmentById(R.id.song_detail_fragment);
 
-        // add the tabs to the tab layout and activate the selected tab
-        int selectedTabPosition = 0; // default value
-        if (savedInstanceState != null) {
-            selectedTabPosition = savedInstanceState.getInt(SELECTED_TAB_POSITION_KEY);
+            // hide next and previous button from the fragment
+            findViewById(R.id.next_fab).setVisibility(View.GONE);
+            findViewById(R.id.previous_fab).setVisibility(View.GONE);
+
+            // we will hide song detail layout at the beginning because No song is selected yet
+            if (savedInstanceState == null) {
+                setSongDetailLayoutVisibility(View.INVISIBLE);
+            }
+
+            // restore song video position in the list after rotating the device as well as detail layout visibility
+            if (savedInstanceState != null) {
+                if (savedInstanceState.containsKey(SONG_VIDEO_POSITION_KEY))
+                    mSongVideoPosition = savedInstanceState.getInt(SONG_VIDEO_POSITION_KEY);
+                if (savedInstanceState.containsKey(IS_SONG_DETAIL_LAYOUT_VISIBLE_KEY)) {
+                    mIsSongDetailLayoutVisible = savedInstanceState.getBoolean(IS_SONG_DETAIL_LAYOUT_VISIBLE_KEY);
+                    if (mIsSongDetailLayoutVisible)
+                        mSongDetailLayout.setVisibility(View.VISIBLE);
+                    else
+                        mSongDetailLayout.setVisibility(View.INVISIBLE);
+                }
+            }
+
+        } else {
+            mTwoPane = false;
         }
-        for (int i = 0; i < TABS_NUM; i++) {
-            TabLayout.Tab tab = tabs[i];
-            mTabLayout.addTab(tab, i == selectedTabPosition);
-        }
 
-        mTabLayout.addOnTabSelectedListener(this);
 
         if (HelperUtils.isDeviceOnline(this)) {
             String apiKey = getString(R.string.developer_key);
@@ -78,7 +101,8 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
                 // retrieve song video info array when rotating the device
                 if (savedInstanceState != null && savedInstanceState.containsKey(SONG_VIDEO_INFO_ARRAY_KEY)) {
                     mSongVideoInfoList = savedInstanceState.getParcelableArrayList(SONG_VIDEO_INFO_ARRAY_KEY);
-                    mSongListFragment.setSongVideoInfoList(mSongVideoInfoList, this);
+                    mSongListFragment.setSongVideoInfoList(mSongVideoInfoList, this,
+                            this);
                 } else {
                     new FetchSongsInfo().execute(apiKey);
                 }
@@ -87,8 +111,30 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
             // there is no internet connection in this case, so we will notify the user
             View contentView = findViewById(android.R.id.content);
             Snackbar.make(contentView, R.string.no_internet_connection, Snackbar.LENGTH_LONG).show();
+            return; // No point for continue
         }
 
+        // create and populate tab layout
+        int selectedTabPosition = 0; // default value
+        if (savedInstanceState != null) {
+            selectedTabPosition = savedInstanceState.getInt(SELECTED_TAB_POSITION_KEY);
+        }
+        mThankUTabHelper = new ThankUTabHelper(this, this, selectedTabPosition);
+
+
+    }
+
+    /**
+     * set visibility for song detail layout
+     * @param visibility must be either View.VISIBLE or View.INVISIBLE
+     */
+    private void setSongDetailLayoutVisibility(int visibility) {
+        if (visibility != View.VISIBLE && visibility != View.INVISIBLE) {
+            throw new IllegalArgumentException("the argument must be either View.VISIBLE or View.INVISIBLE");
+        }
+
+        mSongDetailLayout.setVisibility(visibility);
+        mIsSongDetailLayoutVisible = (visibility == View.VISIBLE);
     }
 
     @Override
@@ -98,45 +144,69 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
             outState.putParcelableArrayList(SONG_VIDEO_INFO_ARRAY_KEY, (ArrayList) mSongVideoInfoList);
         }
 
-        outState.putInt(SELECTED_TAB_POSITION_KEY, mTabLayout.getSelectedTabPosition());
+        if (mTwoPane) {
+            if (mSongVideoPosition >= 0)
+                outState.putInt(SONG_VIDEO_POSITION_KEY, mSongVideoPosition);
+            outState.putBoolean(IS_SONG_DETAIL_LAYOUT_VISIBLE_KEY, mIsSongDetailLayoutVisible);
+        }
+
+        outState.putInt(SELECTED_TAB_POSITION_KEY, mThankUTabHelper.getSelectedTabPosition());
     }
 
     @Override
-    public void songThumbnailClickHandler(int position) {
-        // start detail activity with the songVideoInfo as extra
-        Intent detailIntent = new Intent(this, SongDetailActivity.class);
-        detailIntent.putExtra(SongDetailActivity.EXTRA_SONG_VIDEO_POSITION, position);
-        detailIntent.putParcelableArrayListExtra(SongDetailActivity.EXTRA_SONG_VIDEO_INFO_LIST,
-                (ArrayList) mSongVideoInfoList);
-        startActivity(detailIntent);
+    public void imageViewClickHandler(int position, ImageView clickedImageView) {
+        if (!mTwoPane) {
+            // making click effect for the image view
+            Animation animFadeIn = AnimationUtils.loadAnimation(this,R.anim.fade_in);
+            clickedImageView.startAnimation(animFadeIn);
+
+            // start detail activity with the song video info list and song position
+            Intent detailIntent = new Intent(this, SongDetailActivity.class);
+            detailIntent.putExtra(SongDetailActivity.EXTRA_SONG_VIDEO_POSITION, position);
+            detailIntent.putParcelableArrayListExtra(SongDetailActivity.EXTRA_SONG_VIDEO_INFO_LIST,
+                    (ArrayList) mSongVideoInfoList);
+            startActivity(detailIntent);
+        } else {
+            // making sure the song detail layout is visible
+            setSongDetailLayoutVisibility(View.VISIBLE);
+
+            mSongVideoPosition = position;
+            mSongListFragment.setSelectedItem(position);
+            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(position),
+                    IS_VIDEO_FULL_SCREEN_IN_LANDSCAPE);
+        }
     }
 
     @Override
-    public void onTabSelected(TabLayout.Tab tab) {
+    public void tabSelectedHandler(TabLayout.Tab tab) {
+        if (mTwoPane) {
+            // stop and release any youtube player
+            mSongDetailFragment.releasePlayer();
+
+            // hide song detail layout
+            setSongDetailLayoutVisibility(View.INVISIBLE);
+        }
+
+
+        // we want to get rid from any songs in the recycler view if exist
+        mSongListFragment.setSongVideoInfoList(null, null, null);
+
         // making animation for the song list layout when switching between the tabs
         final Animation animation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         final FrameLayout songListLayout = findViewById(R.id.song_list_fragment);
         songListLayout.startAnimation(animation);
 
+
+
         int position = tab.getPosition();
         switch (position) {
-            case POSITION_ALL_TAB:
+            case ThankUTabHelper.POSITION_TAB_ALL:
                 handleAllTabSelected();
                 break;
-            case POSITION_FAV_TAB:
+            case ThankUTabHelper.POSITION_TAB_FAV:
                 handleFavTabSelected();
                 break;
         }
-
-    }
-
-    @Override
-    public void onTabUnselected(TabLayout.Tab tab) {
-
-    }
-
-    @Override
-    public void onTabReselected(TabLayout.Tab tab) {
 
     }
 
@@ -144,16 +214,18 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
         SongVideoInfo[] songVideoInfoArray = DbUtils.getAllFavoriteSongs(this);
         if (songVideoInfoArray != null && songVideoInfoArray.length > 0) {
             mSongVideoInfoList = new ArrayList<>(Arrays.asList(songVideoInfoArray));
-            mSongListFragment.setSongVideoInfoList(mSongVideoInfoList, this);
+            mSongListFragment.setSongVideoInfoList(mSongVideoInfoList, this,
+                    this);
         } else {
             HelperUtils.showSnackbar(this, R.string.no_favorite_songs);
-            mSongListFragment.setSongVideoInfoList(null, null);
         }
     }
 
     private void handleAllTabSelected() {
-        // we want to get rid from any songs in the recycler view if exist
-        mSongListFragment.setSongVideoInfoList(null, null);
+        if (!HelperUtils.isDeviceOnline(this)) {
+            HelperUtils.showSnackbar(this, R.string.no_internet_connection);
+            return;
+        }
 
         String apiKey = getString(R.string.developer_key);
         // making sure the developer key is set in strings.xml file
@@ -162,6 +234,27 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
         } else {
             new FetchSongsInfo().execute(apiKey);
         }
+    }
+
+    @Override
+    public void onSongVideoEnded() {
+        if (mSongVideoPosition >= mSongVideoInfoList.size()-1) {
+            HelperUtils.showSnackbar(this, R.string.no_next_song);
+        } else {
+            mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(++mSongVideoPosition),
+                    IS_VIDEO_FULL_SCREEN_IN_LANDSCAPE);
+            mSongListFragment.setSelectedItem(mSongVideoPosition);
+        }
+    }
+
+    @Override
+    public void imageViewSelectedHandler(ImageView imageView, boolean isSelected) {
+        if (!mTwoPane) return;
+
+        if (isSelected)
+            imageView.setAlpha(0.7f);
+        else
+            imageView.setAlpha(1.0f);
     }
 
 
@@ -205,7 +298,8 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
                             mSongVideoInfoList.add(songVideoInfoArray[i]);
                     }
 
-                    mSongListFragment.setSongVideoInfoList(mSongVideoInfoList, MainActivity.this);
+                    mSongListFragment.setSongVideoInfoList(mSongVideoInfoList,
+                            MainActivity.this, MainActivity.this);
                 }
 
             } catch (JSONException e) {

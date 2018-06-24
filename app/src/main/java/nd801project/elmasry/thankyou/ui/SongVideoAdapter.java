@@ -7,8 +7,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
@@ -21,13 +19,17 @@ import timber.log.Timber;
 
 public class SongVideoAdapter extends RecyclerView.Adapter<SongVideoAdapter.SongVideoAdapterViewHolder> {
 
-    private final Callback mCallback;
+    private final ImageViewClickCallback mImageViewClickCallback;
+    private final ImageViewSelectedCallback mImageViewSelectedCallback;
     private List<SongVideoInfo> mSongVideoInfoList;
     private final Context mContext;
+    private int mSelectedPos = RecyclerView.NO_POSITION;
 
-    public SongVideoAdapter(Context context, Callback callback) {
+    public SongVideoAdapter(Context context, ImageViewClickCallback imageViewClickCallback,
+                            ImageViewSelectedCallback imageViewSelectedCallback) {
         mContext = context;
-        mCallback = callback;
+        mImageViewClickCallback = imageViewClickCallback;
+        mImageViewSelectedCallback = imageViewSelectedCallback;
     }
 
     @NonNull
@@ -54,6 +56,9 @@ public class SongVideoAdapter extends RecyclerView.Adapter<SongVideoAdapter.Song
                     .into(holder.songVideoImageView);
         }
 
+        mImageViewSelectedCallback.imageViewSelectedHandler(holder.songVideoImageView,
+                position == mSelectedPos);
+
     }
 
     @Override
@@ -67,9 +72,20 @@ public class SongVideoAdapter extends RecyclerView.Adapter<SongVideoAdapter.Song
         notifyDataSetChanged();
     }
 
-    interface Callback {
-        void songThumbnailClickHandler(int position);
+    public void setSelectedItem(int position) {
+        notifyItemChanged(mSelectedPos);
+        mSelectedPos = position;
+        notifyItemChanged(mSelectedPos);
     }
+
+    interface ImageViewClickCallback {
+        void imageViewClickHandler(int position, ImageView clickedImageView);
+    }
+
+    interface ImageViewSelectedCallback {
+        void imageViewSelectedHandler(ImageView imageView, boolean isSelected);
+    }
+
 
     class SongVideoAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -83,11 +99,8 @@ public class SongVideoAdapter extends RecyclerView.Adapter<SongVideoAdapter.Song
 
         @Override
         public void onClick(View view) {
-            // making click effect for the image view
-            Animation animFadein = AnimationUtils.loadAnimation(mContext,R.anim.fade_in);
-            songVideoImageView.startAnimation(animFadein);
-
-            mCallback.songThumbnailClickHandler(getAdapterPosition());
+            if (mImageViewClickCallback == null) return;
+            mImageViewClickCallback.imageViewClickHandler(getAdapterPosition(), songVideoImageView);
         }
     }
 }
