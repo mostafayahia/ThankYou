@@ -44,4 +44,8 @@ dependencies {
 
     // using to display youtube video
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
+
+
+    // using google analytics
+    implementation "com.google.android.gms:play-services-analytics:16.0.1"
 }

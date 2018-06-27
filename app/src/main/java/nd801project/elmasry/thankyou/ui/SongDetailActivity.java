@@ -52,6 +52,8 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
             findViewById(R.id.next_fab).setVisibility(View.GONE);
             findViewById(R.id.previous_fab).setVisibility(View.GONE);
             mSongDetailFragment.setSongVideoInfo(songVideoInfo, IS_FULL_SCREEN_IN_LANDSCAPE);
+            // save last seen song video info and the song position and start widget service action if necessary
+            saveLastSeenSongVideo(songVideoInfo);
         } else {
             // NOT widget case
             // the mSongVideoPosition may be changed using the previous and next buttons so we need to
@@ -66,14 +68,13 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
 
                 songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
                 mSongDetailFragment.setSongVideoInfo(songVideoInfo, IS_FULL_SCREEN_IN_LANDSCAPE);
+                // save last seen song video info and the song position and start widget service action if necessary
+                saveLastSeenSongVideo(songVideoInfo);
             } else {
                 if (savedInstanceState.containsKey(SONG_VIDEO_POSITION_KEY))
                     mSongVideoPosition = savedInstanceState.getInt(SONG_VIDEO_POSITION_KEY);
             }
         }
-
-        // save last seen song video info and the song position and start widget service action if necessary
-        saveLastSeenSongVideo(songVideoInfo);
 
         // hiding the status bar only in landscape mode
         View decorView = getWindow().getDecorView();

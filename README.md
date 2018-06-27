@@ -6,4 +6,6 @@ captions on and this will be helpful for Non Native English Speakers.
 
 ### Important:
 
-You have to set your youtube developer key in strings.xml file before running the app, please make sure it works without errors by using the following link: https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=PLoagsPg26SY7YdytkX5rJhX3aFmbvaZRM&key=API-KEY
+1- You have to set your youtube developer key in strings.xml file before running the app, please make sure it works without errors by using the following link: https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=PLoagsPg26SY7YdytkX5rJhX3aFmbvaZRM&key=API-KEY
+
+2- You have to set ga-trackingId in xml/global-tracker.xml

@@ -14,11 +14,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import nd801project.elmasry.thankyou.R;
+import nd801project.elmasry.thankyou.analytics.AnalyticsApplication;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
 import nd801project.elmasry.thankyou.utilities.DbUtils;
 import nd801project.elmasry.thankyou.utilities.HelperUtils;
@@ -49,6 +52,7 @@ public class SongDetailFragment extends Fragment implements
 
     private PlayerStateChangeListener mPlayerStateChangeListener;
     private boolean mIsPlaying;
+    private Tracker mTracker;
 
 
     interface SongVideoEndedCallback {
@@ -86,7 +90,21 @@ public class SongDetailFragment extends Fragment implements
             mIsFullScreenInLandscape = savedInstanceState.getBoolean(IS_FULL_SCREEN_LANDSCAPE_KEY);
         }
 
+
+        // regarding analytics ==> Obtain the shared Tracker instance.
+        AnalyticsApplication application = (AnalyticsApplication) getActivity().getApplication();
+        mTracker = application.getDefaultTracker();
+
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // regarding analytics
+        mTracker.setScreenName("detailFragment");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -112,7 +130,7 @@ public class SongDetailFragment extends Fragment implements
 
     private void loadVideo(int startFromMillis) {
         if (mAutoPlayVideo) mPlayer.loadVideo(mVideoId, startFromMillis);
-        else                mPlayer.cueVideo(mVideoId, startFromMillis);
+        else mPlayer.cueVideo(mVideoId, startFromMillis);
     }
 
     @Override
@@ -157,6 +175,7 @@ public class SongDetailFragment extends Fragment implements
 
     /**
      * setting song video info for this fragment and the video will be auto-play by default
+     *
      * @param songVideoInfo
      * @param isFullScreenInLandscape
      */
@@ -230,6 +249,13 @@ public class SongDetailFragment extends Fragment implements
         sendIntent.putExtra(Intent.EXTRA_TEXT, videoLink);
         sendIntent.setType("text/plain");
         startActivity(sendIntent);
+
+        // [START custom_event] regarding analytics
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory("Action")
+                .setAction("Share")
+                .build());
+        // [END custom_event]
     }
 
     private void favoriteButtonHandler() {
