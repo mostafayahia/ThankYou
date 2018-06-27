@@ -40,6 +40,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 tools:background="#ffdd"
+                android:paddingTop="@dimen/detail_actions_layout_padding_vertical"
                 android:paddingStart="@dimen/detail_actions_layout_padding_horizontal"
                 android:paddingEnd="@dimen/detail_actions_layout_padding_horizontal">
 

@@ -23,5 +23,7 @@
     <string name="removed_from_favorites">Removed from favorites</string>
     <string name="added_to_favorites">Added to favorites</string>
     <string name="no_favorite_songs">No favorite songs!</string>
+    <string name="add_widget">Add widget</string>
+    <string name="widget_text">Thank You</string>
 
 </resources>

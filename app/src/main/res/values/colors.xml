@@ -6,4 +6,6 @@
     <color name="appBarTextColor">#ffff</color>
     <color name="tab_text_color">#8fff</color>
     <color name="photo_placeholder">#fccc</color>
+    <color name="widget_background_color">#09C</color>
+    <color name="widget_text_color">#ffffff</color>
 </resources>

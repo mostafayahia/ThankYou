@@ -22,6 +22,7 @@ import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
 import nd801project.elmasry.thankyou.utilities.DbUtils;
 import nd801project.elmasry.thankyou.utilities.HelperUtils;
+import nd801project.elmasry.thankyou.widget.ThankUWidgetService;
 import timber.log.Timber;
 
 import static com.google.android.youtube.player.YouTubePlayer.*;
@@ -243,12 +244,19 @@ public class SongDetailFragment extends Fragment implements
             if (isDeleted) {
                 mFavoriteButton.setImageResource(R.drawable.ic_favorite_white);
                 HelperUtils.showSnackbar(getActivity(), R.string.removed_from_favorites);
+
+                if (DbUtils.hasFavoriteSongs(getActivity()))
+                    ThankUWidgetService.startActionDisplayOneOfFavorites(getActivity());
+                else
+                    ThankUWidgetService.startActionDisplayLastSeenSong(getActivity());
             }
         } else {
             boolean isInserted = DbUtils.insertInFavorites(getActivity(), mSongVideoInfo);
             if (isInserted) {
                 mFavoriteButton.setImageResource(R.drawable.ic_favorite_yellow);
                 HelperUtils.showSnackbar(getActivity(), R.string.added_to_favorites);
+
+                ThankUWidgetService.startActionDisplayOneOfFavorites(getActivity());
             }
         }
     }

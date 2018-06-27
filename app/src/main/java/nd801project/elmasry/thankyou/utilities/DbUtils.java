@@ -6,6 +6,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
 
 import static nd801project.elmasry.thankyou.data.FavoritesContract.FavoritesEntry.*;
@@ -70,7 +74,7 @@ public class DbUtils {
      * @param context
      * @return
      */
-    public static SongVideoInfo[] getAllFavoriteSongs(Context context) {
+    public static List<SongVideoInfo> getAllFavoriteSongs(Context context) {
         Cursor cursor = context.getContentResolver().query(CONTENT_URI, null,
                 null, null, null);
 
@@ -94,6 +98,24 @@ public class DbUtils {
 
         if (cursor != null) cursor.close();
 
-        return songVideoInfoArray;
+        if (songVideoInfoArray == null) return null;
+
+        return new ArrayList<>(Arrays.asList(songVideoInfoArray));
+    }
+
+    /**
+     * check if there is any songs stored in favorites or not
+     * @param context
+     * @return
+     */
+    public static boolean hasFavoriteSongs(Context context) {
+        Cursor cursor = context.getContentResolver().query(CONTENT_URI, null,
+                null, null, null);
+
+        boolean hasFavoriteSongs = (cursor != null && cursor.getCount() > 0);
+
+        if (cursor != null) cursor.close();
+
+        return hasFavoriteSongs;
     }
 }

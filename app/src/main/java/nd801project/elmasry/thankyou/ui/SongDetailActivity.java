@@ -4,24 +4,29 @@ import android.content.res.Configuration;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import java.util.List;
 
 import nd801project.elmasry.thankyou.R;
 import nd801project.elmasry.thankyou.model.SongVideoInfo;
+import nd801project.elmasry.thankyou.utilities.DbUtils;
 import nd801project.elmasry.thankyou.utilities.HelperUtils;
+import nd801project.elmasry.thankyou.utilities.PreferenceUtils;
+import nd801project.elmasry.thankyou.widget.ThankUWidgetService;
 import timber.log.Timber;
 
 public class SongDetailActivity extends AppCompatActivity implements SongDetailFragment.SongVideoEndedCallback {
 
     public static final String EXTRA_SONG_VIDEO_POSITION = "nd801project.elmasry.thankyou.extra.SONG_VIDEO_POSITION";
     public static final String EXTRA_SONG_VIDEO_INFO_LIST = "nd801project.elmasry.thankyou.extra.SONG_VIDEO_INFO_LIST";
+    public static final String EXTRA_SONG_VIDEO_INFO = "nd801project.elmasry.thankyou.extra.SONG_VIDEO_INFO";
+
     private static final String SONG_VIDEO_POSITION_KEY = "song_video_position";
 
-    private static final int INVALID_POSITION = -1;
     private List<SongVideoInfo> mSongVideoInfoList;
-    private int mSongVideoPosition;
+    private int mSongVideoPosition = RecyclerView.NO_POSITION; // has an invalid value by default
     private SongDetailFragment mSongDetailFragment;
 
     private static final boolean IS_FULL_SCREEN_IN_LANDSCAPE = true;
@@ -35,26 +40,40 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
 
         mSongVideoInfoList = getIntent().getParcelableArrayListExtra(EXTRA_SONG_VIDEO_INFO_LIST);
         if (mSongVideoInfoList == null) {
-            Timber.e("songVideoInfoList is null");
-            return;
+            Timber.w("songVideoInfoList is null");
         }
 
-        // the mSongVideoPosition may be changed using the previous and next buttons so we need to
-        // save it and restore it
-        if (savedInstanceState == null) {
-            mSongVideoPosition = getIntent().getIntExtra(EXTRA_SONG_VIDEO_POSITION, INVALID_POSITION);
+        SongVideoInfo songVideoInfo = getIntent().getParcelableExtra(EXTRA_SONG_VIDEO_INFO);
 
-            if (mSongVideoPosition < 0) {
-                Timber.e("songVideoPosition wasn't sent as extra");
-                return;
-            }
-
-            SongVideoInfo songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
+        if (mSongVideoInfoList == null && songVideoInfo != null) {
+            // widget case
+            // in this case we want **only** play and display the given song so we hide next and
+            // previous buttons
+            findViewById(R.id.next_fab).setVisibility(View.GONE);
+            findViewById(R.id.previous_fab).setVisibility(View.GONE);
             mSongDetailFragment.setSongVideoInfo(songVideoInfo, IS_FULL_SCREEN_IN_LANDSCAPE);
         } else {
-            if (savedInstanceState.containsKey(SONG_VIDEO_POSITION_KEY))
-                mSongVideoPosition = savedInstanceState.getInt(SONG_VIDEO_POSITION_KEY);
+            // NOT widget case
+            // the mSongVideoPosition may be changed using the previous and next buttons so we need to
+            // save it and restore it
+            if (savedInstanceState == null) {
+                mSongVideoPosition = getIntent().getIntExtra(EXTRA_SONG_VIDEO_POSITION, RecyclerView.NO_POSITION);
+
+                if (mSongVideoPosition < 0) {
+                    Timber.e("songVideoPosition wasn't sent as extra");
+                    return;
+                }
+
+                songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
+                mSongDetailFragment.setSongVideoInfo(songVideoInfo, IS_FULL_SCREEN_IN_LANDSCAPE);
+            } else {
+                if (savedInstanceState.containsKey(SONG_VIDEO_POSITION_KEY))
+                    mSongVideoPosition = savedInstanceState.getInt(SONG_VIDEO_POSITION_KEY);
+            }
         }
+
+        // save last seen song video info and the song position and start widget service action if necessary
+        saveLastSeenSongVideo(songVideoInfo);
 
         // hiding the status bar only in landscape mode
         View decorView = getWindow().getDecorView();
@@ -85,21 +104,38 @@ public class SongDetailActivity extends AppCompatActivity implements SongDetailF
     public void previousButtonHandler(View view) {
         if (mSongVideoPosition <= 0) {
             HelperUtils.showSnackbar(this, R.string.no_previous_song);
+            return;
         } else {
             mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(--mSongVideoPosition), IS_FULL_SCREEN_IN_LANDSCAPE);
         }
+
+        // save last seen song video info and the song position and start widget service action if necessary
+        SongVideoInfo songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
+        saveLastSeenSongVideo(songVideoInfo);
     }
 
     public void nextButtonHandler(View view) {
         if (mSongVideoPosition >= mSongVideoInfoList.size()-1) {
             HelperUtils.showSnackbar(this, R.string.no_next_song);
+            return;
         } else {
             mSongDetailFragment.setSongVideoInfo(mSongVideoInfoList.get(++mSongVideoPosition), IS_FULL_SCREEN_IN_LANDSCAPE);
         }
+
+        // save last seen song video info and the song position and start widget service action if necessary
+        SongVideoInfo songVideoInfo = mSongVideoInfoList.get(mSongVideoPosition);
+        saveLastSeenSongVideo(songVideoInfo);
+    }
+
+    private void saveLastSeenSongVideo(SongVideoInfo songVideoInfo) {
+        PreferenceUtils.setLastSeenSongVideo(this, mSongVideoPosition, songVideoInfo);
+        if (!DbUtils.hasFavoriteSongs(this))
+            ThankUWidgetService.startActionDisplayLastSeenSong(this);
     }
 
     @Override
     public void onSongVideoEnded() {
+        if (mSongVideoInfoList == null) return;
         // we will automatically play the next song in the list if applicable
         nextButtonHandler(null);
     }
