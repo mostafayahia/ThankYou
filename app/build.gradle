@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 26
     defaultConfig {
         applicationId "nd801project.elmasry.thankyou"
         minSdkVersion 17
-        targetSdkVersion 27
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -19,7 +19,7 @@ android {
 }
 
 ext {
-    supportLibVersion = "27.1.1"
+    supportLibVersion = "26.1.0"
 }
 
 dependencies {
@@ -45,7 +45,9 @@ dependencies {
     // using to display youtube video
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
 
-
     // using google analytics
     implementation "com.google.android.gms:play-services-analytics:16.0.1"
+
+    // using for google mobile ads
+    implementation "com.google.android.gms:play-services-ads:15.0.1"
 }
