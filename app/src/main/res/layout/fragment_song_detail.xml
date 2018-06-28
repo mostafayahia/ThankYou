@@ -35,6 +35,8 @@
                 android:paddingTop="@dimen/song_title_padding_vertical"
                 tools:text="Song title here" />
 
+            <!-- android:paddingBottom="48dp" because we don't want google ads overlap action buttons
+             in case of landscape in tablet -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -42,7 +44,8 @@
                 tools:background="#ffdd"
                 android:paddingTop="@dimen/detail_actions_layout_padding_vertical"
                 android:paddingStart="@dimen/detail_actions_layout_padding_horizontal"
-                android:paddingEnd="@dimen/detail_actions_layout_padding_horizontal">
+                android:paddingEnd="@dimen/detail_actions_layout_padding_horizontal"
+                android:paddingBottom="48dp">
 
                 <ImageButton
                     android:id="@+id/previous_fab"
