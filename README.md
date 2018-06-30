@@ -10,12 +10,12 @@ captions on and this will be helpful for Non Native English Speakers.
 
 2- You have to set ga-trackingId in xml/global-tracker.xml for google analytics.
 
-#### Regrading the app widget
+#### Regrading the app widget:
 1- If there is no song watched, the app widget will display the first song in the list by default.
 
 2- If there is no favorite songs, the widget will display the last watched song. Other wise the app will display one of favorite songs.
 
-3- The widget will automaitcally updated every 24 hours.
+3- The widget will be automaitcally updated every 24 hours.
 
 ##### More details:
 To get more details about the project, you can visit: https://github.com/mostafayahia/Capstone-Project

@@ -14,14 +14,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import nd801project.elmasry.thankyou.R;
@@ -158,16 +154,6 @@ public class MainActivity extends AppCompatActivity implements SongVideoAdapter.
         }
         mThankUTabHelper = new ThankUTabHelper(this, this, selectedTabPosition);
 
-
-        // regarding google mobile ads
-        AdView mAdView = findViewById(R.id.adView);
-        // Create an ad request. Check logcat output for the hashed device ID to
-        // get test ads on a physical device. e.g.
-        // "Use AdRequest.Builder.addTestDevice("ABCDEF012345") to get test ads on this device."
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                .build();
-        mAdView.loadAd(adRequest);
 
     }
 
