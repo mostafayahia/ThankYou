@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">شكراً</string>
+
+    <string name="label_all">الكل</string>
+    <string name="label_fav">المفضل</string>
+
+    <string name="no_internet_connection">لا يوجد أتصال بالنت</string>
+    <string name="up">أعلى</string>
+    <string name="previous_button">الأعنية السابقة</string>
+    <string name="favorite_button">زر التفضيل</string>
+    <string name="share_button">شير</string>
+    <string name="next_button">الأغنية اللاحقة</string>
+    <string name="no_previous_song">قد وصلت إلى بداية القائمة</string>
+    <string name="no_next_song">قد وصلت إلى نهاية القائمة</string>
+    <string name="no_title_for_video">عنوان الأغنية غير متاح</string>
+    <string name="no_song">لا توجد أغنية</string>
+    <string name="removed_from_favorites">تم الحذف من المفضل</string>
+    <string name="added_to_favorites">تم الإضافة إلى المفضل</string>
+    <string name="no_favorite_songs">لا توجد أغانى مفضلة</string>
+    <string name="add_widget">إضافة تطبيق مصغر</string>
+    <string name="widget_text">شكراً</string>
+
+</resources>
